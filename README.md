@@ -31,7 +31,7 @@
 
 1. **Clone** the repository:
    ```bash
-   git clone https://github.com/yourorg/ember-analysis.git
+   git clone https://github.com/psygos/ember-analysis.git
    cd ember-analysis
    ```
 2. **Install** front-end dependencies:
