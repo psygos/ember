@@ -1,0 +1,50 @@
+# Node.js dependencies and build output
+dist/
+node_modules/
+
+# Tauri / Rust build artifacts
+src-tauri/target/
+
+# Temporary directories
+tmp/
+
+# Cache directories
+.cache/
+
+# Vite cache
+.vite/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE directories
+.idea/
+.vscode/
+
+# Environment variables
+.env
+.env.*.local
+
+# Data artifacts (runtime caches, imports, generated analysis outputs)
+data/cache/
+data/imports/
+data/*.json
+
+# Public generated JSON artifacts
+public/*.json
+
+# Tauri dynamic logs and cache in src-tauri
+src-tauri/few_logs.txt
+src-tauri/ember-swift-current/
+
+# Mac bundles
+*.dmg
+*.app
+*.zip
+
+# Lock files for other package managers
+yarn.lock
+pnpm-lock.yaml
