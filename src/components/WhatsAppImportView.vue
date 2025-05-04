@@ -50,8 +50,8 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { chatImports, selectedChat, setSelectedChat, removeChatImport, initialLoading } from '../store/WhatsAppStore';
-import { store, ViewType } from '../store/AnalysisStore';
+import { store } from '../store/AnalysisStore';
+import { chatImports, selectedChat, initialLoading, setSelectedChat, removeChatImport } from '../store/WhatsAppStore';
 import { invoke } from '@tauri-apps/api/tauri';
 import WhatsAppImporter from './WhatsAppImporter.vue';
 
@@ -67,23 +67,37 @@ export default defineComponent({
       setSelectedChat(chat);
       loading.value = true;
       error.value = null;
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout after 60s')), 60000)
-      );
+      const BATCH_SIZE = 10; // Process 10 chunks per backend call
+      const totalChunks = chat.chunks.length;
+
       try {
-      // Process initial batch of chunks and then load graph data
-      await Promise.race([
-        invoke('process_chat', { batch: { name: chat.name, start: 0, chunks: chat.chunks.slice(0, 10) } }),
-        timeout
-      ]);
-      // Reload graph data with newly cached chunks
-      try {
+        console.log(`[WhatsAppImportView] Processing ${totalChunks} chunks for chat: ${chat.name}`);
+        for (let i = 0; i < totalChunks; i += BATCH_SIZE) {
+          const start = i;
+          const end = Math.min(i + BATCH_SIZE, totalChunks);
+          const batchChunks = chat.chunks.slice(start, end);
+          console.log(`[WhatsAppImportView] Sending batch ${start}-${end-1}...`);
+          const batch = { name: chat.name, start: start, chunks: batchChunks };
+          
+          // Set a timeout for each individual batch processing call
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Timeout processing batch ${start}-${end-1} after 60s`)), 60000)
+          );
+
+          await Promise.race([
+            invoke('process_chat', { batch }), // Await the backend call for the current batch
+            timeoutPromise
+          ]);
+          console.log(`[WhatsAppImportView] Batch ${start}-${end-1} processed.`);
+        }
+
+        console.log(`[WhatsAppImportView] All chunks processed for ${chat.name}. Loading graph data...`);
+        // Reload graph data ONLY after all batches are processed
         await store.selectChat(chat.name);
-      } catch (e) {
-        console.error('Graph data reload failed:', e);
-      }
-      // Note: no automatic view switch; user can navigate to Recall after loading completes
+        console.log(`[WhatsAppImportView] Graph data loaded for ${chat.name}.`);
+
       } catch (e: any) {
+        console.error(`[WhatsAppImportView] Error processing chat ${chat.name}:`, e);
         error.value = e.message || String(e);
       } finally {
         loading.value = false;

@@ -17,9 +17,9 @@ class CalendarDateHelper {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
   
-  // Format date as YYYY-MM-DD for the API
+  // Format date as DD/MM/YY to match saved memories keys in analysis.json
   dateKey(date: Date): string {
-    return format(date, 'yyyy-MM-dd');
+    return format(date, 'dd/MM/yy');
   }
   
   // Check if two dates are the same day
