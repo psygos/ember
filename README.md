@@ -53,7 +53,7 @@ Ember Analysis is a cross-platform desktop application for importing, visualizin
    # or
    yarn
    ```
-3. (Optional) Create a `.env` file in the root to define `VITE_*` environment variables:
+3. Create a `.env` file in the root to define `VITE_*` environment variables:
    ```bash
    VITE_API_KEY=your_api_key
    ```
@@ -120,13 +120,6 @@ ember/
 | `npm run clean:rust`  | Remove Rust build artifacts                |
 | `npm run lint`        | Run linters and format checks              |
 
-## Packaging & Distribution
-
-After `npm run tauri-build`, platform-specific installers and bundles are generated at:
-```
-src-tauri/target/release/bundle/
-```
-Distribute the `.dmg` (macOS), `.exe` (Windows), and AppImage (Linux) files found there.
 
 ## Data Caching & Storage
 
