@@ -65,20 +65,27 @@ export default defineComponent({
 
     async function selectChat(chat: typeof chatImports[0]) {
       setSelectedChat(chat);
-      loading.value = true;
+      loading.value = true; // Set global loading flag
       error.value = null;
-      const BATCH_SIZE = 10; // Process 10 chunks per backend call
+      const BATCH_SIZE = 10;
       const totalChunks = chat.chunks.length;
+      // *** Limit processing to the first 20 chunks (max 2 batches) ***
+      const chunksToProcess = Math.min(totalChunks, 20);
 
       try {
-        console.log(`[WhatsAppImportView] Processing ${totalChunks} chunks for chat: ${chat.name}`);
-        for (let i = 0; i < totalChunks; i += BATCH_SIZE) {
+        console.log(`[WhatsAppImportView] Processing initial ${chunksToProcess} of ${totalChunks} chunks for chat: ${chat.name}`);
+        // *** Loop only for the initial chunks ***
+        for (let i = 0; i < chunksToProcess; i += BATCH_SIZE) {
           const start = i;
-          const end = Math.min(i + BATCH_SIZE, totalChunks);
+          // Calculate end index, respecting both BATCH_SIZE and chunksToProcess limit
+          const end = Math.min(i + BATCH_SIZE, chunksToProcess);
           const batchChunks = chat.chunks.slice(start, end);
-          console.log(`[WhatsAppImportView] Sending batch ${start}-${end-1}...`);
+          // Ensure we don't send empty batches if chunksToProcess is less than BATCH_SIZE
+          if (batchChunks.length === 0) continue;
+
+          console.log(`[WhatsAppImportView] Sending initial batch ${start}-${end-1}...`);
           const batch = { name: chat.name, start: start, chunks: batchChunks };
-          
+
           // Set a timeout for each individual batch processing call
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout processing batch ${start}-${end-1} after 60s`)), 60000)
@@ -88,13 +95,14 @@ export default defineComponent({
             invoke('process_chat', { batch }), // Await the backend call for the current batch
             timeoutPromise
           ]);
-          console.log(`[WhatsAppImportView] Batch ${start}-${end-1} processed.`);
+          console.log(`[WhatsAppImportView] Initial batch ${start}-${end-1} processed.`);
         }
 
-        console.log(`[WhatsAppImportView] All chunks processed for ${chat.name}. Loading graph data...`);
-        // Reload graph data ONLY after all batches are processed
-        await store.selectChat(chat.name);
-        console.log(`[WhatsAppImportView] Graph data loaded for ${chat.name}.`);
+        console.log(`[WhatsAppImportView] Initial ${chunksToProcess} chunks processed for ${chat.name}.`);
+        // *** TODO: Reload graph/analysis data later, potentially triggered by specific views (Recall, Graph) after full processing ***
+        // console.log(`[WhatsAppImportView] Loading potentially partial graph data...`);
+        // await store.selectChat(chat.name);
+        // console.log(`[WhatsAppImportView] Partial graph data loaded for ${chat.name}.`);
 
       } catch (e: any) {
         console.error(`[WhatsAppImportView] Error processing chat ${chat.name}:`, e);
