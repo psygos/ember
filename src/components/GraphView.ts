@@ -18,6 +18,10 @@ export class GraphView {
   private gestureZoomScale = 1.0;
   private previousZoomScale = 1.0;
   
+  // Bound handlers for proper add/remove
+  private readonly _mouseMoveHandler = this.handlePan.bind(this);
+  private readonly _mouseUpHandler = this.endPan.bind(this);
+  
   // UI constants - exact match with Swift
   private readonly EMBER_ORANGE = '#f1502f'; 
   
@@ -253,8 +257,8 @@ export class GraphView {
     this.lastPanPosition = { x: event.clientX, y: event.clientY };
     
     // Add document-level event listeners for move and up
-    document.addEventListener('mousemove', this.handlePan.bind(this));
-    document.addEventListener('mouseup', this.endPan.bind(this));
+    document.addEventListener('mousemove', this._mouseMoveHandler);
+    document.addEventListener('mouseup', this._mouseUpHandler);
   }
   
   private handlePan(event: MouseEvent) {
@@ -268,7 +272,7 @@ export class GraphView {
     // Apply pan exactly like Swift does, accounting for zoom level
     const offset = store.state.graphState.viewOffset;
     store.setViewOffset(new THREE.Vector2(
-      offset.x + dx / store.state.graphState.zoomLevel,
+      offset.x - dx / store.state.graphState.zoomLevel,
       offset.y + dy / store.state.graphState.zoomLevel
     ));
     
@@ -280,8 +284,8 @@ export class GraphView {
   
   private endPan() {
     this.isPanning = false;
-    document.removeEventListener('mousemove', this.handlePan.bind(this));
-    document.removeEventListener('mouseup', this.endPan.bind(this));
+    document.removeEventListener('mousemove', this._mouseMoveHandler);
+    document.removeEventListener('mouseup', this._mouseUpHandler);
   }
   
   // TOUCH HANDLING FOR MOBILE
@@ -339,7 +343,7 @@ export class GraphView {
       // Apply pan accounting for zoom level
       const offset = store.state.graphState.viewOffset;
       store.setViewOffset(new THREE.Vector2(
-        offset.x + dx / store.state.graphState.zoomLevel,
+        offset.x - dx / store.state.graphState.zoomLevel,
         offset.y + dy / store.state.graphState.zoomLevel
       ));
       
@@ -362,7 +366,7 @@ export class GraphView {
       // Apply pan
       const offset = store.state.graphState.viewOffset;
       store.setViewOffset(new THREE.Vector2(
-        offset.x + dx / store.state.graphState.zoomLevel,
+        offset.x - dx / store.state.graphState.zoomLevel,
         offset.y + dy / store.state.graphState.zoomLevel
       ));
       

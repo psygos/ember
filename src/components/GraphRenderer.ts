@@ -27,8 +27,8 @@ export class GraphRenderer {
   private readonly EMBER_ORANGE = new THREE.Color(EMBER);
   // Scale factor for node size to render smaller, sharper nodes
   private readonly NODE_SCALE = 0.8;
-  // Higher segment count for smoother circles
-  private readonly CIRCLE_SEGMENTS = 128;
+  // Reduced segment count for faster rendering (very minor visual impact)
+  private readonly CIRCLE_SEGMENTS = 32;
   
   private sceneColors: Record<string, THREE.Color> = {};
   // Renderer resolution for LineMaterial
@@ -67,7 +67,7 @@ export class GraphRenderer {
     
     // Create high-quality renderer with anti-aliasing
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: false, // disable AA for large scenes – big perf win
       alpha: true,
       premultipliedAlpha: false,
       precision: 'highp',
@@ -76,8 +76,8 @@ export class GraphRenderer {
     
     // Set up renderer
     this.renderer.setSize(width, height);
-    // Use full device pixel ratio for sharpness
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    // Limit devicePixelRatio to 1.5 to lower GPU load on high-DPI screens
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     // Track resolution for line materials
     this.resolution.set(width, height);
     // Enable dithering for smoother gradients
@@ -619,18 +619,25 @@ export class GraphRenderer {
   private animateNodePositions() {
     const graphState = store.state.graphState;
     const selectedNodeId = graphState.selectedNode;
-    
-    // Update node positions with physics simulation
+
+    // Disable per-frame physics when graph is large to keep FPS high
+    const APPLY_PHYSICS = graphState.nodes.size <= 300;
+
     graphState.nodes.forEach((node, nodeId) => {
       const nodeObject = this.nodeObjects.get(nodeId);
       if (!nodeObject) return;
-      
-      // Apply Spring force towards target position
-      this.applySpringForce(node, nodeObject);
-      
+
+      // Optionally apply spring force animation
+      if (APPLY_PHYSICS) {
+        this.applySpringForce(node, nodeObject);
+      } else {
+        // Snap directly to target position for large graphs
+        nodeObject.position.set(node.position.x, node.position.y, 0);
+      }
+
       // Update node animation progress based on selection state
       this.updateNodeAnimationProgress(node, nodeId, selectedNodeId);
-      
+
       // Update node appearance
       this.updateNodeAppearance(nodeId, node);
     });

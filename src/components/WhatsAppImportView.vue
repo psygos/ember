@@ -5,10 +5,14 @@
       <h2 class="text-xl font-semibold">Imported WhatsApp Chats</h2>
       <WhatsAppImporter />
     </div>
-    <!-- Loading bar when initializing chat -->
+    <!-- Dynamic progress bar during the initial 20-chunk pre-processing phase -->
     <div v-if="initialLoading" class="flex items-center justify-center mt-10">
       <div class="w-3/4 h-2 bg-gray-700 rounded overflow-hidden">
-        <div class="h-full bg-ember-orange animate-pulse" style="width:50%"></div>
+        <!-- Width reflects percentage of the first 20 chunks processed -->
+        <div
+          class="h-full bg-ember-orange transition-all duration-300"
+          :style="{ width: progress + '%' }"
+        ></div>
       </div>
     </div>
     <!-- Empty state -->
@@ -61,12 +65,15 @@ export default defineComponent({
   setup() {
     // Global loading flag for initial chunk processing
     const loading = initialLoading;
+    // Reactive progress (0-100) for the first-20-chunk import
+    const progress = ref(0);
     const error = ref<string | null>(null);
 
     async function selectChat(chat: typeof chatImports[0]) {
       setSelectedChat(chat);
       loading.value = true; // Set global loading flag
       error.value = null;
+      progress.value = 0;
       const BATCH_SIZE = 10;
       const totalChunks = chat.chunks.length;
       // *** Limit processing to the first 20 chunks (max 2 batches) ***
@@ -96,18 +103,23 @@ export default defineComponent({
             timeoutPromise
           ]);
           console.log(`[WhatsAppImportView] Initial batch ${start}-${end-1} processed.`);
+
+          // Update progress after the batch completes
+          progress.value = Math.round((end / chunksToProcess) * 100);
         }
 
         console.log(`[WhatsAppImportView] Initial ${chunksToProcess} chunks processed for ${chat.name}.`);
-        // *** TODO: Reload graph/analysis data later, potentially triggered by specific views (Recall, Graph) after full processing ***
-        // console.log(`[WhatsAppImportView] Loading potentially partial graph data...`);
-        // await store.selectChat(chat.name);
-        // console.log(`[WhatsAppImportView] Partial graph data loaded for ${chat.name}.`);
+        // Reload graph data so the Interaction Graph can display the freshly processed entities
+        console.log(`[WhatsAppImportView] Reloading graph data for ${chat.name}...`);
+        await store.selectChat(chat.name);
+        console.log(`[WhatsAppImportView] Graph data reloaded.`);
 
       } catch (e: any) {
         console.error(`[WhatsAppImportView] Error processing chat ${chat.name}:`, e);
         error.value = e.message || String(e);
       } finally {
+        // Ensure UI shows completion
+        progress.value = 100;
         loading.value = false;
       }
     }
@@ -129,7 +141,8 @@ export default defineComponent({
       error,
       selectChat,
       retry,
-      removeChat
+      removeChat,
+      progress
     };
   }
 });

@@ -66,8 +66,8 @@ export class GraphRecallModule {
   private assignments: (string|null)[] = [];
   private loading = false;
   private error: string|null = null;
-  private debugElement: HTMLElement;
-  private debugConsole: HTMLElement;
+  private debugElement!: HTMLElement;
+  private debugConsole!: HTMLElement;
   private debugLogs: string[] = [];
   private storageKey: string;
 
@@ -410,19 +410,11 @@ export class GraphRecallModule {
     setTimeout(() => { toast.remove(); }, 4000);
   }
 
-  /** Loading pane with spinner suited to recall game */
+  /** Loading pane disabled – no redundant overlay in the game view */
   private loadingPane(): HTMLElement {
+    // Return an empty, hidden element to preserve call sites without rendering a visible overlay
     const pane = document.createElement('div');
-    pane.className = 'absolute inset-0 flex flex-col items-center justify-center bg-black/70 space-y-4';
-    // Spinner circle
-    const spinner = document.createElement('div');
-    spinner.className = 'w-16 h-16 border-4 border-gray-600 border-t-4 border-ember-orange rounded-full animate-spin';
-    // Loading text
-    const text = document.createElement('div');
-    text.textContent = 'Loading recall rounds...';
-    text.className = 'text-lg text-gray-300 font-semibold';
-    pane.appendChild(spinner);
-    pane.appendChild(text);
+    pane.style.display = 'none';
     return pane;
   }
 

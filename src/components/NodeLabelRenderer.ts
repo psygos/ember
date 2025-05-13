@@ -149,7 +149,9 @@ export class NodeLabelsRenderer {
     // Matches SwiftUI: .font(.system(size: min(node.size * 0.6, 14) * (1/state.zoomLevel)))
     // Applying inverse zoom is the key to making text readable at all zoom levels
     const baseFontSize = Math.min(node.size * 0.6, 14);
-    const fontSize = baseFontSize * (1 / zoom);
+    // Scale down when zoomed in (>1) but do NOT grow beyond base size when zoomed out (<1)
+    const scaleFactor = Math.min(1 / zoom, 1);
+    const fontSize = baseFontSize * scaleFactor;
     
     // Use same font styling as Swift
     this.ctx.font = `${isSelected ? 'bold' : 'normal'} ${fontSize}px -apple-system, BlinkMacSystemFont, "Inter", sans-serif`;
@@ -160,7 +162,7 @@ export class NodeLabelsRenderer {
     const textWidth = this.ctx.measureText(node.id).width;
     
     // Padding also needs to scale inversely with zoom just like font
-    const padding = 6 * (1 / zoom);
+    const padding = 6 * scaleFactor;
     const rectWidth = textWidth + padding * 2;
     const rectHeight = fontSize + padding * 2;
     
@@ -169,7 +171,7 @@ export class NodeLabelsRenderer {
     this.ctx.beginPath();
     
     // Corner radius also scales inversely with zoom
-    const cornerRadius = 4 * (1 / zoom);
+    const cornerRadius = 4 * scaleFactor;
     
     // Draw rounded rectangle for label background
     if (this.ctx.roundRect) {
