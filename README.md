@@ -1,6 +1,5 @@
 # Ember Analysis
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 
 Ember Analysis is a cross-platform desktop application for importing, visualizing, and quizzing yourself on your WhatsApp chat data. Built with Vue 3, TypeScript, Tailwind CSS, Vite, and Tauri (Rust).
@@ -38,7 +37,7 @@ Ember Analysis is a cross-platform desktop application for importing, visualizin
 - Node.js v16 or higher
 - npm or Yarn
 - Rust toolchain (rustc ≥ 1.60, cargo)
-- Tauri prerequisites (see [Tauri docs](https://tauri.studio/docs/getting-started/intro))
+- Tauri prerequisites 
 
 ## Installation
 
@@ -120,13 +119,6 @@ ember/
 | `npm run clean:rust`  | Remove Rust build artifacts                |
 | `npm run lint`        | Run linters and format checks              |
 
-## Packaging & Distribution
-
-After `npm run tauri-build`, platform-specific installers and bundles are generated at:
-```
-src-tauri/target/release/bundle/
-```
-Distribute the `.dmg` (macOS), `.exe` (Windows), and AppImage (Linux) files found there.
 
 ## Data Caching & Storage
 
@@ -145,7 +137,6 @@ Currently, there are no automated tests. Future plans include unit and integrati
 
 - **Missing Rust toolchain**: ensure `rustup` is installed and `cargo` is on your PATH.
 - **Port conflicts**: change dev server port in `vite.config.ts`.
-- **Tauri build errors**: see [Tauri troubleshooting](https://tauri.studio/docs/getting-started/troubleshooting).
 
 ## Contributing
 
@@ -157,11 +148,6 @@ We welcome contributions! Please:
 4. Push to your branch (`git push origin feature/xyz`).
 5. Open a Pull Request.
 
-Follow our [Code of Conduct](CODE_OF_CONDUCT.md) and style guidelines.
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
